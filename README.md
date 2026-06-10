@@ -1,5 +1,8 @@
 # DIY Reminders — Training & Dinner via Telegram
 
+> **Getting started? See [SETUP.md](SETUP.md)** for the step-by-step guide to
+> create the bots, add secrets, activate the workflow, and verify it runs.
+
 Serverless, free reminders sent to Telegram on a schedule, powered by GitHub
 Actions. Two streams:
 
