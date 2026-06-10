@@ -39,12 +39,14 @@ DIET_PREFS = (
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
 
-def telegram_token() -> str:
-    return os.environ.get("TELEGRAM_BOT_TOKEN", "")
+def bot_token(stream: str) -> str:
+    """Bot token for a stream: 'exercise' or 'dinner'."""
+    return os.environ.get(f"{stream.upper()}_BOT_TOKEN", "")
 
 
-def telegram_chat_id() -> str:
-    return os.environ.get("TELEGRAM_CHAT_ID", "")
+def chat_id(stream: str) -> str:
+    """Chat ID for a stream: 'exercise' or 'dinner'."""
+    return os.environ.get(f"{stream.upper()}_CHAT_ID", "")
 
 
 def anthropic_key() -> str:

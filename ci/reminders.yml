@@ -53,8 +53,10 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run reminder
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EXERCISE_BOT_TOKEN: ${{ secrets.EXERCISE_BOT_TOKEN }}
+          EXERCISE_CHAT_ID: ${{ secrets.EXERCISE_CHAT_ID }}
+          DINNER_BOT_TOKEN: ${{ secrets.DINNER_BOT_TOKEN }}
+          DINNER_CHAT_ID: ${{ secrets.DINNER_CHAT_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           FORCE_REMINDER: ${{ github.event.inputs.reminder }}
           DRY_RUN: ${{ github.event.inputs.dry_run && '1' || '' }}

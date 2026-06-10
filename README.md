@@ -24,15 +24,19 @@ seasonal edits needed when DST flips on 4 Oct 2026.
 
 ## One-time setup
 
-1. **Create a Telegram bot**
-   - Message [`@BotFather`](https://t.me/BotFather) → `/newbot` → copy the
-     **bot token**.
-   - Send your new bot any message, then open
-     `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy the
-     `chat.id` value — that's your **chat ID**.
+1. **Create TWO Telegram bots** (one per stream — exercise and dinner)
+   - Message [`@BotFather`](https://t.me/BotFather) → `/newbot` twice, e.g.
+     a *Training* bot and a *Dinner* bot. Copy each **bot token**.
+   - Send each new bot any message, then open
+     `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy the `chat.id`
+     value — that's the **chat ID** for that bot. (If you DM both from the same
+     account the IDs match, but they're configured separately so you can also
+     route them to different chats/groups.)
 2. **Add GitHub repo secrets** (Settings → Secrets and variables → Actions):
-   - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
+   - `EXERCISE_BOT_TOKEN`, `EXERCISE_CHAT_ID` — sends the daily session and
+     Sunday training summary.
+   - `DINNER_BOT_TOKEN`, `DINNER_CHAT_ID` — sends the daily and weekly dinner
+     seed prompts.
    - `ANTHROPIC_API_KEY` (optional — only used to reword the morning training
      message; everything still works without it)
 3. **Set up a Claude dinner Project** (recommended): create a Project on

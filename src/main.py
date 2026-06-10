@@ -25,13 +25,14 @@ from . import config, dinner, exercise
 from .send import send_telegram
 
 # Reminder targets, expressed in local (config.TIMEZONE) time.
-#   key: (weekdays where it applies, target time, builder)
+#   key: (weekdays where it applies, target time, stream, builder)
 # weekdays: set of 0=Mon..6=Sun, or None for every day.
+# stream: which Telegram bot sends it — 'exercise' or 'dinner'.
 REMINDERS = {
-    "exercise":         (None,  dtime(5, 30),  lambda d: exercise.daily_message(d)),
-    "dinner_weekly":    ({5},   dtime(9, 0),   lambda d: dinner.weekly_seed()),
-    "dinner_daily":     (None,  dtime(15, 0),  lambda d: dinner.daily_seed()),
-    "training_summary": ({6},   dtime(18, 0),  lambda d: exercise.weekly_summary(d)),
+    "exercise":         (None,  dtime(5, 30),  "exercise", lambda d: exercise.daily_message(d)),
+    "dinner_weekly":    ({5},   dtime(9, 0),   "dinner",   lambda d: dinner.weekly_seed()),
+    "dinner_daily":     (None,  dtime(15, 0),  "dinner",   lambda d: dinner.daily_seed()),
+    "training_summary": ({6},   dtime(18, 0),  "exercise", lambda d: exercise.weekly_summary(d)),
 }
 
 
@@ -43,7 +44,7 @@ def _due_now(now: datetime) -> list[str]:
     """Reminder keys whose target time falls within the send window right now."""
     due = []
     window = timedelta(minutes=config.SEND_WINDOW_MINUTES)
-    for key, (weekdays, target, _) in REMINDERS.items():
+    for key, (weekdays, target, _stream, _builder) in REMINDERS.items():
         if weekdays is not None and now.weekday() not in weekdays:
             continue
         target_dt = now.replace(hour=target.hour, minute=target.minute,
@@ -54,7 +55,11 @@ def _due_now(now: datetime) -> list[str]:
 
 
 def _build(key: str, now: datetime) -> str:
-    return REMINDERS[key][2](now.date())
+    return REMINDERS[key][3](now.date())
+
+
+def _stream(key: str) -> str:
+    return REMINDERS[key][2]
 
 
 def main() -> int:
@@ -78,12 +83,13 @@ def main() -> int:
     failures = []
     for key in keys:
         message = _build(key, now)
+        stream = _stream(key)
         if dry:
-            print(f"--- {key} ({now.isoformat()}) ---\n{message}\n")
+            print(f"--- {key} via [{stream}] bot ({now.isoformat()}) ---\n{message}\n")
             continue
         try:
-            send_telegram(message)
-            print(f"[{now.isoformat()}] Sent: {key}")
+            send_telegram(message, stream)
+            print(f"[{now.isoformat()}] Sent: {key} via {stream} bot")
         except Exception as e:  # noqa: BLE001 - surface but keep going
             print(f"[{now.isoformat()}] FAILED {key}: {e}", file=sys.stderr)
             failures.append(key)

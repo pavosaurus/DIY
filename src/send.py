@@ -11,17 +11,21 @@ from . import config
 API = "https://api.telegram.org/bot{token}/sendMessage"
 
 
-def send_telegram(text: str, *, retries: int = 4) -> bool:
-    """Send a plain-text message. Retries on network / 5xx errors."""
-    token = config.telegram_token()
-    chat_id = config.telegram_chat_id()
-    if not token or not chat_id:
+def send_telegram(text: str, stream: str, *, retries: int = 4) -> bool:
+    """Send a plain-text message via the given stream's bot ('exercise'/'dinner').
+
+    Retries on network / 5xx errors.
+    """
+    token = config.bot_token(stream)
+    target = config.chat_id(stream)
+    if not token or not target:
         raise RuntimeError(
-            "Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID environment variable."
+            f"Missing {stream.upper()}_BOT_TOKEN or {stream.upper()}_CHAT_ID "
+            "environment variable."
         )
 
     url = API.format(token=token)
-    payload = {"chat_id": chat_id, "text": text, "disable_web_page_preview": True}
+    payload = {"chat_id": target, "text": text, "disable_web_page_preview": True}
 
     delay = 2
     last_err = ""
