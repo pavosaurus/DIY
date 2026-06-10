@@ -1,0 +1,63 @@
+name: Reminders
+
+# Times below are UTC. Each reminder has TWO crons: one for AEST (UTC+10) and
+# one for AEDT (UTC+11). main.py gates on real Australia/Sydney time, so only
+# the firing that maps to the correct local time actually sends — DST is
+# handled automatically, no seasonal edits needed.
+on:
+  schedule:
+    # Exercise — daily 05:30 Sydney
+    - cron: "30 19 * * *"   # AEST: 05:30 next day
+    - cron: "30 18 * * *"   # AEDT: 05:30 next day
+    # Dinner (daily) — 15:00 Sydney
+    - cron: "0 5 * * *"     # AEST
+    - cron: "0 4 * * *"     # AEDT
+    # Dinner (weekly) — Saturday 09:00 Sydney  (Fri in UTC)
+    - cron: "0 23 * * 5"    # AEST
+    - cron: "0 22 * * 5"    # AEDT
+    # Training summary — Sunday 18:00 Sydney
+    - cron: "0 8 * * 0"     # AEST
+    - cron: "0 7 * * 0"     # AEDT
+  workflow_dispatch:
+    inputs:
+      reminder:
+        description: "Force-send a reminder (bypasses the time gate)"
+        required: true
+        default: "exercise"
+        type: choice
+        options:
+          - exercise
+          - dinner_daily
+          - dinner_weekly
+          - training_summary
+          - all
+      dry_run:
+        description: "Print instead of sending"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: reminders
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run reminder
+        env:
+          EXERCISE_BOT_TOKEN: ${{ secrets.EXERCISE_BOT_TOKEN }}
+          EXERCISE_CHAT_ID: ${{ secrets.EXERCISE_CHAT_ID }}
+          DINNER_BOT_TOKEN: ${{ secrets.DINNER_BOT_TOKEN }}
+          DINNER_CHAT_ID: ${{ secrets.DINNER_CHAT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FORCE_REMINDER: ${{ github.event.inputs.reminder }}
+          DRY_RUN: ${{ github.event.inputs.dry_run && '1' || '' }}
+        run: python -m src.main
