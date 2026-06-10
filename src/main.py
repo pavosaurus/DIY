@@ -16,9 +16,11 @@ to bypass the time gate. Add DRY_RUN=1 to print instead of send.
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from datetime import datetime, time as dtime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from . import config, dinner, exercise
@@ -62,6 +64,27 @@ def _stream(key: str) -> str:
     return REMINDERS[key][2]
 
 
+# --- Sent-state (dedup for catch-up crons) -----------------------------------
+# Each reminder's send is recorded as {key: local ISO date} in STATE_FILE. The
+# workflow commits this file back to the repo, so a later catch-up cron sees it
+# and skips reminders already sent today. The commit also doubles as repo
+# activity, keeping GitHub's 60-day schedule-disablement at bay.
+STATE_FILE = Path(__file__).resolve().parent.parent / "state" / "sent.json"
+
+
+def _load_state() -> dict:
+    try:
+        return json.loads(STATE_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def _record_sent(state: dict, key: str, now: datetime) -> None:
+    state[key] = now.date().isoformat()
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
+
+
 def main() -> int:
     now = _now_local()
     dry = os.environ.get("DRY_RUN", "") not in ("", "0", "false", "False")
@@ -75,6 +98,12 @@ def main() -> int:
                 return 2
     else:
         keys = _due_now(now)
+        # Skip anything already sent today (a catch-up cron after a success).
+        state = _load_state()
+        already = [k for k in keys if state.get(k) == now.date().isoformat()]
+        for k in already:
+            print(f"[{now.isoformat()}] {k} already sent today — skipping.")
+        keys = [k for k in keys if k not in already]
 
     if not keys:
         print(f"[{now.isoformat()}] Nothing due. Exiting cleanly.")
@@ -90,6 +119,8 @@ def main() -> int:
         try:
             send_telegram(message, stream)
             print(f"[{now.isoformat()}] Sent: {key} via {stream} bot")
+            if not forced:  # manual test sends don't suppress the scheduled one
+                _record_sent(_load_state(), key, now)
         except Exception as e:  # noqa: BLE001 - surface but keep going
             print(f"[{now.isoformat()}] FAILED {key}: {e}", file=sys.stderr)
             failures.append(key)

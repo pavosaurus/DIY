@@ -1,23 +1,36 @@
 name: Reminders
 
-# Times below are UTC. Each reminder has TWO crons: one for AEST (UTC+10) and
-# one for AEDT (UTC+11). main.py gates on real Australia/Sydney time, so only
-# the firing that maps to the correct local time actually sends — DST is
-# handled automatically, no seasonal edits needed.
+# Times below are UTC. Each reminder has crons for both AEST (UTC+10) and
+# AEDT (UTC+11); main.py gates on real Australia/Sydney time, so only the
+# firing that maps to the correct local time actually sends — DST is handled
+# automatically, no seasonal edits needed.
+#
+# Each reminder also has a CATCH-UP cron ~20 min after the primary, because
+# GitHub silently drops scheduled ticks under load (worst at :00/:30, which is
+# also why the minutes are offset). Duplicates are prevented by state/sent.json,
+# which records what was sent today and is committed back by this workflow.
 on:
   schedule:
     # Exercise — daily 05:30 Sydney
-    - cron: "30 19 * * *"   # AEST: 05:30 next day
-    - cron: "30 18 * * *"   # AEDT: 05:30 next day
+    - cron: "37 19 * * *"   # AEST ~05:37 local
+    - cron: "57 19 * * *"   # AEST catch-up ~05:57
+    - cron: "37 18 * * *"   # AEDT ~05:37 local
+    - cron: "57 18 * * *"   # AEDT catch-up ~05:57
     # Dinner (daily) — 15:00 Sydney
-    - cron: "0 5 * * *"     # AEST
-    - cron: "0 4 * * *"     # AEDT
+    - cron: "7 5 * * *"     # AEST ~15:07
+    - cron: "27 5 * * *"    # AEST catch-up ~15:27
+    - cron: "7 4 * * *"     # AEDT ~15:07
+    - cron: "27 4 * * *"    # AEDT catch-up ~15:27
     # Dinner (weekly) — Saturday 09:00 Sydney  (Fri in UTC)
-    - cron: "0 23 * * 5"    # AEST
-    - cron: "0 22 * * 5"    # AEDT
+    - cron: "7 23 * * 5"    # AEST ~09:07 Sat
+    - cron: "27 23 * * 5"   # AEST catch-up ~09:27 Sat
+    - cron: "7 22 * * 5"    # AEDT ~09:07 Sat
+    - cron: "27 22 * * 5"   # AEDT catch-up ~09:27 Sat
     # Training summary — Sunday 18:00 Sydney
-    - cron: "0 8 * * 0"     # AEST
-    - cron: "0 7 * * 0"     # AEDT
+    - cron: "7 8 * * 0"     # AEST ~18:07
+    - cron: "27 8 * * 0"    # AEST catch-up ~18:27
+    - cron: "7 7 * * 0"     # AEDT ~18:07
+    - cron: "27 7 * * 0"    # AEDT catch-up ~18:27
   workflow_dispatch:
     inputs:
       reminder:
@@ -36,6 +49,9 @@ on:
         required: false
         default: false
         type: boolean
+
+permissions:
+  contents: write   # to commit state/sent.json (dedup + keepalive)
 
 concurrency:
   group: reminders
@@ -61,3 +77,14 @@ jobs:
           FORCE_REMINDER: ${{ github.event.inputs.reminder }}
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}
         run: python -m src.main
+      - name: Commit sent-state (dedup + keepalive)
+        if: github.event_name == 'schedule'
+        run: |
+          if [[ -n "$(git status --porcelain state/)" ]]; then
+            git config user.name "reminders-bot"
+            git config user.email "actions@github.com"
+            git add state/
+            git commit -m "Record sent reminders [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
