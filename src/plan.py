@@ -24,14 +24,14 @@ WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday",
                  "Friday", "Saturday", "Sunday"]
 
 # --- Acceleration -----------------------------------------------------------
-# The athlete found Weeks 1–2 easy and asked to "skip ahead one progression
-# step" for the upcoming week (Week 3): KB -> increase one bell size, run ->
-# the Weeks 3–4 structure. This week-indexed model ALREADY advances every week,
-# so Week 3 natively lands on exactly those targets — no artificial offset is
-# applied (an offset would push Week 3 into a deload, the opposite of intent).
-# Keep at 0 unless you want to genuinely compress the timeline.
+# Weeks 1–2 felt easy. KB keeps the standard week-indexed progression (Week 3
+# already steps up one bell size; an offset there would force a deload).
+# The RUN ramp is compressed: from ACCEL_FROM, the Phase-1 Thursday run
+# structure is advanced RUN_BLOCK_ACCEL weeks (one 2-week block), so Week 3
+# jumps to walk1/run5 x4 instead of walk1/run2. Race date (week 24) is unchanged.
 ACCEL_FROM = 3
-ACCEL_STEP = 0
+ACCEL_STEP = 0          # KB progression: no artificial shift
+RUN_BLOCK_ACCEL = 2     # Phase-1 run: advance one 2-week block
 
 # --- Kettlebell loading -----------------------------------------------------
 BELL_SIZES = [12, 16, 20, 24, 28, 32]  # kg available
@@ -85,9 +85,16 @@ def phase_for(week: int) -> int:
 
 
 def effective_prog_week(week: int) -> int:
-    """Week used for progression maths, advanced once acceleration kicks in."""
+    """Week used for KB progression maths (advanced if ACCEL_STEP > 0)."""
     if week >= ACCEL_FROM:
         return week + ACCEL_STEP
+    return week
+
+
+def run_struct_week(week: int) -> int:
+    """Week used to pick the Phase-1 run structure (compressed ramp)."""
+    if phase_for(week) == 1 and week >= ACCEL_FROM:
+        return week + RUN_BLOCK_ACCEL
     return week
 
 
@@ -147,9 +154,10 @@ def _mon_reps(week: int) -> dict:
 def _thursday_run(week: int):
     """Return (title_summary, detail_lines, speed_str)."""
     phase = phase_for(week)
-    pw = effective_prog_week(week)  # accelerated for Phase 1 structure
+    pw = run_struct_week(week)  # compressed Phase-1 run ramp
+    accel = pw != week
     if phase == 1:
-        # Structure keyed to the accelerated progression week.
+        # Structure keyed to the (compressed) run-structure week.
         if pw <= 2:
             return ("Walk/run intervals",
                     ["Walk 2 min / run 1 min x8 (start with the walk)."],
@@ -254,8 +262,11 @@ def session_for(d: date) -> Session:
     if wd == 3:  # Thursday — run
         summary, lines, speed = _thursday_run(week)
         reps_str = lines[0]
+        notes = ["Easy pace = able to hold a conversation."]
+        if run_struct_week(week) != week:
+            notes.append("Run ramp compressed one block (Weeks 1–2 felt easy).")
         return Session(week, phase, wd, f"Run — {summary}", lines + [f"Pace: {speed}."],
-                       ["Easy pace = able to hold a conversation."],
+                       notes,
                        {"weights": "—", "reps": reps_str, "speed": speed})
 
     if wd == 5:  # Saturday — KB complex + run
