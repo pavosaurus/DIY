@@ -71,8 +71,8 @@ jobs:
         env:
           EXERCISE_BOT_TOKEN: ${{ secrets.EXERCISE_BOT_TOKEN }}
           EXERCISE_CHAT_ID: ${{ secrets.EXERCISE_CHAT_ID }}
-          DINNER_BOT_TOKEN: ${{ secrets.DINNER_BOT_TOKEN }}
-          DINNER_CHAT_ID: ${{ secrets.DINNER_CHAT_ID }}
+          DINNER_MENU_BOT_TOKEN: ${{ secrets.DINNER_MENU_BOT_TOKEN }}
+          DINNER_MENU_CHATID: ${{ secrets.DINNER_MENU_CHATID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           FORCE_REMINDER: ${{ github.event.inputs.reminder }}
           DRY_RUN: ${{ github.event.inputs.dry_run == 'true' && '1' || '' }}

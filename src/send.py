@@ -19,9 +19,9 @@ def send_telegram(text: str, stream: str, *, retries: int = 4) -> bool:
     token = config.bot_token(stream)
     target = config.chat_id(stream)
     if not token or not target:
+        tok_var, chat_var = config.env_names(stream)
         raise RuntimeError(
-            f"Missing {stream.upper()}_BOT_TOKEN or {stream.upper()}_CHAT_ID "
-            "environment variable."
+            f"Missing {tok_var} or {chat_var} environment variable."
         )
 
     url = API.format(token=token)

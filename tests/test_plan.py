@@ -66,6 +66,26 @@ def test_race_week_overrides():
     assert "Active Recovery" not in plan.session_for(d(24, 6)).title
 
 
+def test_output_format_figures_present():
+    from src import exercise
+    # Weekly summary must show all three figure types for the week.
+    summary = exercise.weekly_summary(d(1, 6))  # previews Week 2
+    assert "kg:" in summary and "reps/rounds:" in summary and "speed:" in summary
+    assert "km/hr" in summary
+    # Week 3 KB steps up one bell size: 28/24/20 kg.
+    mon3 = plan.session_for(d(3, 0))
+    assert "28kg" in mon3.metrics["weights"]
+    assert mon3.metrics["reps"] != "—"
+    # A run session carries a km/hr speed figure.
+    assert "km/hr" in plan.session_for(d(3, 3)).metrics["speed"]
+
+
+def test_acceleration_does_not_force_deload():
+    # Upcoming week (3) must be the bell-size step, NOT a deload.
+    assert plan.cycle_week(3) == 3
+    assert "increase one bell size" in plan.progression_note(3)
+
+
 def test_weekly_summary_rollover():
     from src import exercise
     # On Sunday of week 1, preview week 2.

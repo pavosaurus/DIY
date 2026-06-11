@@ -1,13 +1,15 @@
-# Exercise Master Prompt — 24-Week Training Plan
+# Exercise Master Prompt — 24-Week Training Plan (Accelerated)
 
 > Source of truth for the daily exercise reminder, weekly training summary, and
 > on-demand full-plan generation. Edit here to change training content.
+> The runtime logic that actually builds the messages lives in `src/plan.py` —
+> keep the two in sync.
 
 I need a consolidated 24-week training plan built around the following goals and parameters.
 
 Goal: Complete a half marathon while building equal strength and cardio, with martial arts as a complementary discipline and bone density improvement through weight loading.
 
-Profile: Intermediate kettlebell experience (1–3 years), no consistent running base, 6+ months to race day.
+Profile: Intermediate kettlebell experience (1–3 years), no consistent running base. Currently in Phase 1, completed Week 2 with sessions feeling easy across the board — skip ahead one progression step from the standard model for both KB and running going forward.
 
 Schedule: 3 training days per week plus 2 martial arts sessions of 45 minutes each, maximum 30 minutes per KB session, 50 minutes for Saturday combined session, 90 minutes total martial arts per week. Two full rest days — Wednesday and Sunday. Sunday is active recovery not passive rest.
 
@@ -36,12 +38,14 @@ Progression model repeating within each phase:
 - Week 2: add 1 rep per exercise
 - Week 3: increase one bell size
 - Week 4: deload, drop to week 1 weight
+- Apply one accelerated step now — if Week 2 felt easy, move to Week 3 progression (increase one bell size) for the upcoming week instead of repeating Week 2 volume
 
 Thursday run progression Phase 1:
 - Weeks 1–2: walk 2 min run 1 min repeat 8 times, start with walk
 - Weeks 3–4: walk 1 min run 2 min repeat 8 times
 - Weeks 5–6: walk 1 min run 5 min repeat 4 times
 - Weeks 7–8: walk 1 min run 10 min repeat 3 times
+- Apply one accelerated step now — skip ahead to Weeks 3–4 structure for the upcoming week
 
 Thursday run progression Phase 2: 5km building to 12km over 8 weeks increasing by 1km per week, all at easy conversational pace
 
@@ -57,4 +61,6 @@ Recovery protocol:
 - Post session stretching within 10 minutes: hip flexor lunge, pigeon pose, hamstring lying, calf wall stretch, doorframe chest stretch, thread the needle, rear shoulder stretch, lat overhead stretch
 - Sunday mobility: hip 90/90, pigeon, child's pose, supine spinal twist, doorframe chest stretch, neck side stretch
 
-Output the full plan as a week by week schedule showing every session for all 24 weeks with weights, reps, run distances, rest periods, and progression notes. Flag any imbalances in movement patterns, volume, or recovery. Note where bone density, cardiovascular, strength, and mobility stimulus occurs across each week.
+Output format requirement: every weekly summary must explicitly state, for each session — exact weights in kg, exact reps or rounds, and exact running/walking speeds in km/hr. Do not summarise sessions without these three figures present.
+
+Output the full plan as a week by week schedule showing every session for all 24 weeks with weights, reps, run distances, speeds, rest periods, and progression notes. Flag any imbalances in movement patterns, volume, or recovery. Note where bone density, cardiovascular, strength, and mobility stimulus occurs across each week.

@@ -76,8 +76,10 @@ def weekly_summary(today: date | None = None) -> str:
         lines.append("")
 
     for s in sessions:
-        head = s.details[0] if s.details else ""
-        lines.append(f"• {s.weekday_name}: {s.title} — {head}")
+        m = s.metrics
+        lines.append(f"• {s.weekday_name}: {s.title}")
+        lines.append(f"    kg: {m['weights']}  |  reps/rounds: {m['reps']}  "
+                     f"|  speed: {m['speed']}")
 
     return "\n".join(lines)
 

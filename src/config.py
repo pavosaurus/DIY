@@ -39,14 +39,24 @@ DIET_PREFS = (
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
 
+# Telegram env-var names per stream: (token_var, chat_id_var).
+STREAM_ENV = {
+    "exercise": ("EXERCISE_BOT_TOKEN", "EXERCISE_CHAT_ID"),
+    "dinner": ("DINNER_MENU_BOT_TOKEN", "DINNER_MENU_CHATID"),
+}
+
+
+def env_names(stream: str) -> tuple[str, str]:
+    """(token_var, chat_id_var) for a stream: 'exercise' or 'dinner'."""
+    return STREAM_ENV[stream]
+
+
 def bot_token(stream: str) -> str:
-    """Bot token for a stream: 'exercise' or 'dinner'."""
-    return os.environ.get(f"{stream.upper()}_BOT_TOKEN", "")
+    return os.environ.get(STREAM_ENV[stream][0], "")
 
 
 def chat_id(stream: str) -> str:
-    """Chat ID for a stream: 'exercise' or 'dinner'."""
-    return os.environ.get(f"{stream.upper()}_CHAT_ID", "")
+    return os.environ.get(STREAM_ENV[stream][1], "")
 
 
 def anthropic_key() -> str:

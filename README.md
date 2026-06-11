@@ -38,7 +38,7 @@ seasonal edits needed when DST flips on 4 Oct 2026.
 2. **Add GitHub repo secrets** (Settings → Secrets and variables → Actions):
    - `EXERCISE_BOT_TOKEN`, `EXERCISE_CHAT_ID` — sends the daily session and
      Sunday training summary.
-   - `DINNER_BOT_TOKEN`, `DINNER_CHAT_ID` — sends the daily and weekly dinner
+   - `DINNER_MENU_BOT_TOKEN`, `DINNER_MENU_CHATID` — sends the daily and weekly dinner
      seed prompts.
    - `ANTHROPIC_API_KEY` (optional — only used to reword the morning training
      message; everything still works without it)

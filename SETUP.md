@@ -43,8 +43,8 @@ Add:
 |--------|----------|----------|
 | `EXERCISE_BOT_TOKEN` | yes | daily session + Sunday training summary |
 | `EXERCISE_CHAT_ID`   | yes | "" |
-| `DINNER_BOT_TOKEN`   | for dinners | daily + weekly dinner seed prompts |
-| `DINNER_CHAT_ID`     | for dinners | "" |
+| `DINNER_MENU_BOT_TOKEN`   | for dinners | daily + weekly dinner seed prompts |
+| `DINNER_MENU_CHATID`     | for dinners | "" |
 | `ANTHROPIC_API_KEY`  | optional | rewords the morning message; works without it |
 
 ## Step 4 — Activate the workflow
